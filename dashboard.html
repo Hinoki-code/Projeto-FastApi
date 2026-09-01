@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Minhas Tarefas - Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --warning: #f59e0b;
+            --warning-hover: #d97706;
+            --border: #334155;
+            --input-bg: #0f172a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .header h2 {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            border: none;
+            padding: 0;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.1rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px 0;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+
+        .btn-warning { background-color: var(--warning); color: #0f172a; }
+        .btn-warning:hover { background-color: var(--warning-hover); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        pre {
+            background: var(--input-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            overflow-x: auto;
+            max-height: 150px;
+            margin: 0;
+        }
+
+        .task-item {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+        }
+
+        .task-item strong {
+            color: var(--primary);
+        }
+
+        .task-item small {
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="header">
+            <h2>Painel de Tarefas</h2>
+            <button class="btn-danger" onclick="logout()">Sair</button>
+        </div>
+
+        <div class="grid">
+            <div class="container">
+                <h2>Criar Nova Tarefa</h2>
+                <input type="text" id="createTitle" placeholder="Título">
+                <textarea id="createDesc" placeholder="Descrição"></textarea>
+                <select id="createStatus">
+                    <option value="false">Pendente</option>
+                    <option value="true">Concluída</option>
+                </select>
+                <button onclick="criarTarefa()">Cadastrar Tarefa</button>
+            </div>
+
+            <div class="container">
+                <h2>Buscar Tarefa por ID</h2>
+                <input type="number" id="searchId" placeholder="Digite o ID da tarefa">
+                <button onclick="buscarPorId()">Pesquisar</button>
+                <pre id="singleTaskOutput">Resultado aparecerá aqui...</pre>
+            </div>
+        </div>
+
+        <div class="container">
+            <h2>Atualizar Tarefa</h2>
+            <input type="number" id="updateId" placeholder="ID da Tarefa">
+            <input type="text" id="updateTitle" placeholder="Novo Título">
+            <textarea id="updateDesc" placeholder="Nova Descrição"></textarea>
+            <select id="updateStatus">
+                <option value="false">Pendente</option>
+                <option value="true">Concluída</option>
+            </select>
+            <button class="btn-warning" onclick="atualizarTarefa()">Salvar Alterações</button>
+        </div>
+
+        <div class="container">
+            <h2>Deletar Tarefa</h2>
+            <input type="number" id="deleteId" placeholder="ID da Tarefa">
+            <button class="btn-danger" onclick="deletarTarefa()">Excluir Tarefa</button>
+        </div>
+
+        <div class="container">
+            <h2>Lista de Todas as Tarefas</h2>
+            <button onclick="listarTarefas()">Atualizar Lista</button>
+            <div id="listaTarefas" style="margin-top: 15px; color: var(--text-muted);">Clique em atualizar para ver suas tarefas...</div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("tokenJwt");
+        if (!token) {
+            window.location.href = "/";
+        }
+
+        function logout() {
+            localStorage.removeItem("tokenJwt");
+            window.location.href = "/";
+        }
+
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        };
+
+        async function criarTarefa() {
+            const title = document.getElementById("createTitle").value;
+            const description = document.getElementById("createDesc").value;
+            const completed = document.getElementById("createStatus").value === "true";
+
+            const res = await fetch("/tasks", {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify({ title, description, completed: completed })
+            });
+
+            if(res.ok) {
+                alert("Tarefa criada com sucesso!");
+                document.getElementById("createTitle").value = "";
+                document.getElementById("createDesc").value = "";
+                document.getElementById("createStatus").value = "false";
+                listarTarefas();
+            } else {
+                alert("Erro ao criar tarefa.");
+            }
+        }
+
+        async function listarTarefas() {
+            const res = await fetch("/tasks/All", { method: "GET", headers: headers });
+            if(res.ok) {
+                const tarefas = await res.json();
+                const div = document.getElementById("listaTarefas");
+                if(tarefas.length === 0) {
+                    div.innerHTML = "<p>Nenhuma tarefa cadastrada.</p>";
+                    return;
+                }
+                div.innerHTML = tarefas.map(t => `
+                    <div class="task-item">
+                        <strong>ID: ${t.Id}</strong> | <b>${t.Titulo}</b> (${t.Completo ? 'Concluída' : 'Pendente'})<br>
+                        <small>${t.Descricao}</small>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function buscarPorId() {
+            const id = document.getElementById("searchId").value;
+            if(!id) return alert("Informe um ID!");
+
+            const res = await fetch(`/tasks/${id}`, { method: "GET", headers: headers });
+            const out = document.getElementById("singleTaskOutput");
+            if(res.ok) {
+                const data = await res.json();
+                out.innerText = JSON.stringify(data, null, 2);
+            } else {
+                out.innerText = "Tarefa não encontrada ou não pertence a você.";
+            }
+        }
+
+        async function atualizarTarefa() {
+            const id = document.getElementById("updateId").value;
+            const title = document.getElementById("updateTitle").value;
+            const description = document.getElementById("updateDesc").value;
+            const completed = document.getElementById("updateStatus").value === "true";
+
+            if(!id) return alert("Informe o ID da tarefa a ser alterada!");
+
+            const res = await fetch(`/tasks/${id}/Update`, {
+                method: "PUT",
+                headers: headers,
+                body: JSON.stringify({ title, description, completed })
+            });
+
+            if(res.ok) {
+                alert("Tarefa atualizada com sucesso!");
+                listarTarefas();
+            } else {
+                alert("Erro ao atualizar. Verifique se o ID existe.");
+            }
+        }
+
+        async function deletarTarefa() {
+            const id = document.getElementById("deleteId").value;
+            if(!id) return alert("Informe o ID!");
+
+            const res = await fetch(`/tasks/${id}/Delete`, {
+                method: "DELETE",
+                headers: headers
+            });
+
+            if(res.ok) {
+                alert("Tarefa deletada!");
+                listarTarefas();
+            } else {
+                alert("Erro ao deletar tarefa.");
+            }
+        }
+
+        listarTarefas();
+    </script>
+</body>
+</html>
