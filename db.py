@@ -3,14 +3,20 @@ from sqlalchemy.orm import declarative_base , sessionmaker
 from pwdlib import PasswordHash
 
 
-
-
 # Configurar banco de dados
-Engine = db.create_engine("sqlite:///Dados.db")
+Engine = db.create_engine("sqlite:///Dados.db", connect_args={"check_same_thread": False})
 Base = declarative_base()
-TempSessao = sessionmaker(Engine)
-Sessao = TempSessao()
+TempSessao = sessionmaker(bind=Engine)
 SenhaHash = PasswordHash.recommended()
+  
+def ConexaoBanco():
+    Banco = TempSessao()
+    try:
+        yield Banco
+    finally:
+        Banco.close()
+
+  
   
 # Criar Tabelas
 class Usuario(Base):
@@ -24,6 +30,7 @@ class Usuario(Base):
     
     @classmethod
     def Contrutor(Cs ,Nome ,Email ,senha ):
+        Sessao = TempSessao()
         
         Hash = SenhaHash.hash(senha)
     
@@ -33,9 +40,10 @@ class Usuario(Base):
         Sessao.close()
 
 class Tarefa(Base):
+    
     __tablename__= "Tarefas"
     
-    Id =  db.Column(db.Integer, primary_key= True , autoincrement= True )
+    Id=  db.Column(db.Integer , primary_key=True, autoincrement= True )
     Id_Usuario = db.Column(db.Integer , db.ForeignKey(Usuario.Id_usuario), nullable=False)
     Titulo = db.Column(db.String(100), nullable=  False)
     Descricao = db.Column (db.Text , nullable=False)
@@ -43,6 +51,8 @@ class Tarefa(Base):
     
     @classmethod
     def Contrutor(Cs ,Id_Usuario, Titulo , Descricao , Completo):
+        Sessao = TempSessao()
+        
         Valores = Cs( Id_Usuario=Id_Usuario,Titulo=Titulo ,Descricao=Descricao ,Completo=Completo)
         Sessao.add(Valores)
         Sessao.commit()

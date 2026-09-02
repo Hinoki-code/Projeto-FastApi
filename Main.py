@@ -1,5 +1,5 @@
 import fastapi
-from fastapi.security import OAuth2PasswordBearer , OAuth2PasswordRequestForm 
+from fastapi.security import OAuth2PasswordBearer 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -9,8 +9,6 @@ from typing import Optional
 import db
 from datetime import datetime , timedelta
 import jwt 
-import os
-
 
 
 """ Comando para rodar abrindo um server: uvicorn Main:app --reload """  
@@ -39,6 +37,7 @@ SenhaHash = PasswordHash.recommended()
 
 app = fastapi.FastAPI()
 
+
 async def ObterUsuarioAtual(token:str = fastapi.Depends(oauth2_scheme)):
    infoDecript=jwt.decode(token,ChaveSecreta, algorithms=["HS256"])
    Id_Usuario= infoDecript.get("Usuario")
@@ -51,7 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 
   
@@ -71,9 +69,11 @@ def serve_dashboard():
 
 # Login e registro de dados 
 @app.post("/api/login")
-def Login(Login:UserLogin):
+def Login(Login:UserLogin , sessao = fastapi.Depends(db.ConexaoBanco)):
     
-    info = db.Sessao.query(db.Usuario).filter_by(Email = Login.Email).first()
+    info = sessao.query(db.Usuario).filter_by(Email = Login.Email).first()
+
+    
     if info is None:
         raise fastapi.HTTPException(status_code=404 , detail="Email ou Senha invalida")
     
@@ -108,40 +108,29 @@ async def Create_tasks(task:Task , Id_Usuario:int = fastapi.Depends(ObterUsuario
 
 
 @app.get("/tasks/All")
-async def get_All(Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual)):
-    info = db.Sessao.query(db.Tarefa).filter_by(Id_Usuario=Id_Usuario).all()
+async def get_All(Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual) , sessao = fastapi.Depends(db.ConexaoBanco)):
+    info = sessao.query(db.Tarefa).filter_by(Id_Usuario=Id_Usuario).all()
     return info
 
     
-@app.get("/tasks/{task_id}")
-async def Get_taskid(task_id:int , Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual)):  
-    info = db.Sessao.query(db.Tarefa).filter_by(Id_Usuario= Id_Usuario, Id = task_id).first()
-    
-    if info is None:
-        raise fastapi.HTTPException(status_code=404 , detail="Tarefa não encontrada no banco de dados.")
-    else:
-        return info
-
-
-    
 @app.put("/tasks/{task_id}/Update")
-async def Update_task(task_id:int ,task:Task , Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual)):
-       info = db.Sessao.query(db.Tarefa).filter_by(Id_usuario=Id_Usuario,Id = task_id).first()
+async def Update_task(task_id:int ,task:Task , Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual) , sessao = fastapi.Depends(db.ConexaoBanco)):
+       info = sessao.query(db.Tarefa).filter_by(Id_Usuario=Id_Usuario,Id = task_id).first()
        info.Titulo = task.title
        info.Descricao = task.description
        info.Completo = task.completed
       
-       db.Sessao.add(info)
-       db.Sessao.commit()
+       sessao.add(info)
+       sessao.commit()
        
        return task
    
    
 @app.delete("/tasks/{task_id}/Delete")
-async def Delet_task(task_id:int, Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual)):
-    info = db.Sessao.query(db.Tarefa).filter_by( Id_Usuario=Id_Usuario , Id = task_id).first()
-    db.Sessao.delete(info)
-    db.Sessao.commit()
+async def Delet_task(task_id:int, Id_Usuario:int = fastapi.Depends(ObterUsuarioAtual), sessao = fastapi.Depends(db.ConexaoBanco)):
+    info = sessao.query(db.Tarefa).filter_by( Id_Usuario=Id_Usuario , Id = task_id).first()
+    sessao.delete(info)
+    sessao.commit()
     
     return "Id deletado do banco de dados"
 
